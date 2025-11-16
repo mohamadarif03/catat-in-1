@@ -103,6 +103,16 @@ function Navbar(): React.JSX.Element {
                   >
                     My Tasks
                   </Button>
+                  <Button
+                    sx={{
+                      fontWeight: isActive('/progress') ? 700 : 500,
+                      textTransform: 'none',
+                      color: isActive('/progress') ? '#F97316' : '#6B7280',
+                    }}
+                    onClick={() => navigate('/progress')}
+                  >
+                    Progress
+                  </Button>
                 </>
               )}
 
@@ -200,6 +210,24 @@ function Navbar(): React.JSX.Element {
                 />
               </ListItemButton>
             </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  sx={{ background: isActive('/progress') ? 'rgba(62,142,222,0.1)' : 'transparent' }}
+                  onClick={() => {
+                    navigate('/progress');
+                    setOpen(false);
+                  }}
+                >
+                  <ListItemText
+                    primary="Progress"
+                    primaryTypographyProps={{
+                      fontWeight: isActive('/progress') ? 700 : 500,
+                      color: isActive('/progress') ? '#F97316' : '#1F2937',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+
 
           </List>
         </Box>

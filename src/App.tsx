@@ -1,51 +1,32 @@
-// src/App.tsx
-import { Box, Container } from '@mui/material';
 import { Route, Routes } from 'react-router-dom';
-import Navbar from './components/layout/Navbar';
+
+import MainLayout from './components/layout/MainLayout';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+
 import Dashboard from './pages/Dashboard';
-import LibraryPage from './pages/LibraryPage'; 
-import TasksPage from './pages/TasksPage'; 
-import ProgressPage from './pages/ProgressPage'; 
-import SummaryPage from './pages/SummaryPage';
+import LibraryPage from './pages/LibraryPage';
+import TasksPage from './pages/TasksPage';
+import ProgressPage from './pages/ProgressPage';
 import ProjectPage from './pages/ProjectPage';
 import QuizPage from './pages/QuizPage';
 
 function App() {
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        p: { xs: 1, sm: 2, md: 3 }, 
-      }}
-    >
-      <Container
-        maxWidth="xl" 
-        sx={{
-          bgcolor: 'background.paper', 
-          borderRadius: '16px', 
-          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.05)',
-          p: 0, 
-          overflow: 'hidden', 
-        }}
-      >
-        <Navbar />
-        <Box 
-          component="main" 
-          sx={{ p: { xs: 2, md: 4 } }}
-        >
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/library" element={<LibraryPage />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/progress" element={<ProgressPage />} />
-            <Route path="/summary" element={<SummaryPage />} /> 
-            <Route path="/project/:projectId" element={<ProjectPage />} />
-            <Route path="/quiz/:topicId" element={<QuizPage />} />
-          </Routes>
-        </Box>
-      </Container>
-    </Box>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/progress" element={<ProgressPage />} />
+        <Route path="/project/:projectId" element={<ProjectPage />} />
+        <Route path="/quiz/:topicId" element={<QuizPage />} />
+      </Route>
+      
+    </Routes>
   );
 }
 
