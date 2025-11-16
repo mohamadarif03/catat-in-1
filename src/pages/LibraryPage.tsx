@@ -5,12 +5,14 @@ import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import FolderDialog from '../components/library/FolderDialog'; // Impor dialog Anda
-import type { Folder } from '../types/folder.types'; // Impor tipe Folder
+import FolderDialog from '../components/library/FolderDialog'; 
+import type { Folder } from '../types/folder.types'; 
+import FileUploadDialog from '../components/library/FileUploadDialog';
 
 function LibraryPage(): React.JSX.Element {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+  const [openFileUploadDialog, setOpenFileUploadDialog] = useState(false);
   const [folders, setFolders] = useState<Folder[]>([
     { id: 'f1', name: 'Biology Notes', iconColor: '#3E8EDE', createdAt: '2023-10-20', fileCount: 12 },
     { id: 'f2', name: 'History Essays', iconColor: '#FF8C42', createdAt: '2023-10-18', fileCount: 8 },
@@ -68,10 +70,11 @@ function LibraryPage(): React.JSX.Element {
           >
             Add Folder
           </Button>
-        <Button
+       <Button
           variant="outlined"
           startIcon={<DescriptionOutlinedIcon />}
           sx={{ textTransform: 'none' }}
+          onClick={() => setOpenFileUploadDialog(true)}
         >
           Add File / Generate Quiz
         </Button>
@@ -182,6 +185,10 @@ function LibraryPage(): React.JSX.Element {
         onClose={handleCloseDialog}
         onSave={handleSaveDialog}
         initialData={editingFolder}
+      />
+      <FileUploadDialog
+        open={openFileUploadDialog}
+        onClose={() => setOpenFileUploadDialog(false)}
       />
     </Box>
   );
