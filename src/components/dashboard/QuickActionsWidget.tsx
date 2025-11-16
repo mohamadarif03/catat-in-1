@@ -27,22 +27,7 @@ function QuickActionsWidget(): React.JSX.Element {
         >
           Add Material
         </Button>
-        <Button
-          variant="contained"
-          startIcon={<QuizOutlined />}
-          fullWidth
-          sx={{
-            py: 1.5,
-            bgcolor: '#F8FAFC',
-            color: '#334155',
-            border: '1px solid #E2E8F0',
-            '&:hover': {
-              bgcolor: '#F1F5F9',
-            },
-          }}
-        >
-          Take Quiz
-        </Button>
+
       </Stack>
     </Paper>
   );
