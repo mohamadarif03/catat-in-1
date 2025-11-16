@@ -1,6 +1,8 @@
-
 export type Task = {
-  id: number;
+  id: string;
   label: string;
+  context: string; 
   completed: boolean;
+  dueDate: string; 
+  priority: 'low' | 'medium' | 'high'; 
 };

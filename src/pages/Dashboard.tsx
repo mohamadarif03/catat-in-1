@@ -12,11 +12,11 @@ import './dashboard.css';
 
 function Dashboard(): React.JSX.Element {
   const tasks: Task[] = [
-    { id: 1, label: 'Finish Calculus Chapter 3 exercises', completed: true },
-    { id: 2, label: 'Draft introduction for History essay', completed: true },
-    { id: 3, label: 'Review Chemistry lab notes', completed: false },
-    { id: 4, label: 'Read pages 50-75 of "The Great Gatsby"', completed: false },
-    { id: 5, label: 'Prepare for Biology quiz', completed: false },
+    { id: '1', label: 'Finish Calculus Chapter 3 exercises', completed: true },
+    { id: '2', label: 'Draft introduction for History essay', completed: true },
+    { id: '3', label: 'Review Chemistry lab notes', completed: false },
+    { id: '4', label: 'Read pages 50-75 of "The Great Gatsby"', completed: false },
+    { id: '5', label: 'Prepare for Biology quiz', completed: false },
   ];
 
   const completedTasks = tasks.filter(t => t.completed).length;

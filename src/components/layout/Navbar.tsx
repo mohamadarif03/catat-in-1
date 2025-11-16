@@ -45,6 +45,7 @@ function Navbar(): React.JSX.Element {
         <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ height: 72 }}>
 
+            {/* LOGO */}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <School sx={{ color: '#F97316', fontSize: 26, mr: 1 }} />
               <Typography
@@ -54,7 +55,6 @@ function Navbar(): React.JSX.Element {
                   mr: 3,
                   fontWeight: 700,
                   color: '#1F2937',
-                  textDecoration: 'none',
                   fontSize: '1.15rem',
                   cursor: 'pointer',
                 }}
@@ -64,8 +64,10 @@ function Navbar(): React.JSX.Element {
               </Typography>
             </Box>
 
+            {/* RIGHT GROUP */}
             <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
 
+              {/* DESKTOP LINK */}
               {isDesktop && (
                 <>
                   <Button
@@ -89,13 +91,27 @@ function Navbar(): React.JSX.Element {
                   >
                     My Library
                   </Button>
+
+                  {/* ✅ ADD TASKS BUTTON HERE */}
+                  <Button
+                    sx={{
+                      fontWeight: isActive('/tasks') ? 700 : 500,
+                      textTransform: 'none',
+                      color: isActive('/tasks') ? '#F97316' : '#6B7280',
+                    }}
+                    onClick={() => navigate('/tasks')}
+                  >
+                    My Tasks
+                  </Button>
                 </>
               )}
 
+              {/* NOTIFICATIONS */}
               <IconButton>
                 <NotificationsOutlined sx={{ color: '#6B7280' }} />
               </IconButton>
 
+              {/* USER AVATAR */}
               <IconButton sx={{ p: 0 }}>
                 <Avatar
                   alt="User"
@@ -109,6 +125,7 @@ function Navbar(): React.JSX.Element {
                 />
               </IconButton>
 
+              {/* MOBILE MENU */}
               {isMobile && (
                 <IconButton onClick={toggleDrawer(true)}>
                   <MenuIcon sx={{ color: '#1F2937' }} />
@@ -119,6 +136,7 @@ function Navbar(): React.JSX.Element {
         </Container>
       </AppBar>
 
+      {/* MOBILE DRAWER */}
       <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
         <Box sx={{ width: 260, p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
@@ -127,11 +145,10 @@ function Navbar(): React.JSX.Element {
 
           <List>
 
+            {/* DASHBOARD */}
             <ListItem disablePadding>
               <ListItemButton
-                sx={{
-                  background: isActive('/') ? 'rgba(62,142,222,0.1)' : 'transparent',
-                }}
+                sx={{ background: isActive('/') ? 'rgba(62,142,222,0.1)' : 'transparent' }}
                 onClick={() => {
                   navigate('/');
                   setOpen(false);
@@ -147,11 +164,10 @@ function Navbar(): React.JSX.Element {
               </ListItemButton>
             </ListItem>
 
+            {/* LIBRARY */}
             <ListItem disablePadding>
               <ListItemButton
-                sx={{
-                  background: isActive('/library') ? 'rgba(62,142,222,0.1)' : 'transparent',
-                }}
+                sx={{ background: isActive('/library') ? 'rgba(62,142,222,0.1)' : 'transparent' }}
                 onClick={() => {
                   navigate('/library');
                   setOpen(false);
@@ -162,6 +178,24 @@ function Navbar(): React.JSX.Element {
                   primaryTypographyProps={{
                     fontWeight: isActive('/library') ? 700 : 500,
                     color: isActive('/library') ? '#F97316' : '#1F2937',
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
+                sx={{ background: isActive('/tasks') ? 'rgba(62,142,222,0.1)' : 'transparent' }}
+                onClick={() => {
+                  navigate('/tasks');
+                  setOpen(false);
+                }}
+              >
+                <ListItemText
+                  primary="My Task"
+                  primaryTypographyProps={{
+                    fontWeight: isActive('/tasks') ? 700 : 500,
+                    color: isActive('/tasks') ? '#F97316' : '#1F2937',
                   }}
                 />
               </ListItemButton>
