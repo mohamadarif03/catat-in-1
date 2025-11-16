@@ -8,6 +8,7 @@ import TasksPage from './pages/TasksPage';
 import ProgressPage from './pages/ProgressPage'; 
 import SummaryPage from './pages/SummaryPage';
 import ProjectPage from './pages/ProjectPage';
+import QuizPage from './pages/QuizPage';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/summary" element={<SummaryPage />} /> 
             <Route path="/project/:projectId" element={<ProjectPage />} />
+            <Route path="/quiz/:topicId" element={<QuizPage />} />
           </Routes>
         </Box>
       </Container>
