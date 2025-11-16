@@ -24,13 +24,13 @@ function DayStreakWidget(): React.JSX.Element {
             mr: 2,
           }}
         >
-          <LocalFireDepartment sx={{ color: 'secondary.main', fontSize: 30 }} />
+          <LocalFireDepartment sx={{ color: 'primary.main', fontSize: 30 }} />
         </Box>
         <Box>
           <Typography variant="h5" component="div" sx={{ color: 'text.primary' }}>
             12
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.primary' }}>
             Day Streak!
           </Typography>
         </Box>

@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { Route, Routes } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './pages/Dashboard';   
+import LibraryPage from './pages/LibraryPage';   
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         >
           <Routes>
             <Route path="/" element={<Dashboard />} /> 
+            <Route path="/library" element={<LibraryPage />} />
           </Routes>
         </Box>
     </Box>

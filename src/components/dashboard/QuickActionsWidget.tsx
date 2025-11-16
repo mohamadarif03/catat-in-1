@@ -11,7 +11,7 @@ function QuickActionsWidget(): React.JSX.Element {
       <Stack spacing={2}>
         <Button
           variant="contained"
-          color="secondary"
+          color="primary"
           startIcon={<Add />}
           fullWidth
           sx={{ py: 1.5, color: 'white' }}

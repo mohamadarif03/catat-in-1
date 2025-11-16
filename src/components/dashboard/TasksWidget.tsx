@@ -24,7 +24,7 @@ function TasksWidget({ tasks }: TasksWidgetProps): React.JSX.Element {
         </Typography>
         <Button
           variant="contained"
-          color="secondary"
+          color="primary"
           sx={{color: 'white'}}
           startIcon={<Add />}
         >
