@@ -1,10 +1,11 @@
 // src/App.tsx
-import { Box } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import { Route, Routes } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './pages/Dashboard';
 import LibraryPage from './pages/LibraryPage'; 
-import TasksPage from './pages/TasksPage';
+import TasksPage from './pages/TasksPage'; 
+import ProgressPage from './pages/ProgressPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/progress" element={<ProgressPage />} /> 
           </Routes>
         </Box>
     </Box>
