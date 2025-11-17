@@ -83,19 +83,19 @@ function ProgressPage(): React.JSX.Element {
               title="Total Study Hours"
               value="32h"
               IconComponent={AccessTimeIcon}
-              iconBgColor={theme.palette.primary.light + '33'}
+              iconBgColor={theme.palette.warning.light + '33'}
             />
             <StatCard
               title="Tasks Completed"
               value="120"
               IconComponent={CheckCircleOutlineIcon}
-              iconBgColor={theme.palette.success.light + '33'}
+              iconBgColor={theme.palette.warning.light + '33'}
             />
             <StatCard
               title="AI Quizzes Taken"
               value="25"
               IconComponent={LibraryBooksIcon}
-              iconBgColor={theme.palette.info.light + '33'}
+              iconBgColor={theme.palette.warning.light + '33'}
             />
             <StatCard
               title="Most Productive Day"

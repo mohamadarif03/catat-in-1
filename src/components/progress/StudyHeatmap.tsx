@@ -12,12 +12,12 @@ const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const getColorForLevel = (level: number, theme: any) => {
   switch (level) {
-    case 0: return theme.palette.grey[200];
-    case 1: return theme.palette.primary.light;
-    case 2: return theme.palette.primary.main;
-    case 3: return theme.palette.primary.dark;
-    case 4: return '#00397A'
-    default: return '#00397A';
+    case 0: return '#FFE7D2';
+    case 1: return '#FFB97F';
+    case 2: return'##F97316';
+    case 3: return '#B84E0F';
+    case 4: return '#5A2404'
+    default: return '#5A2404';
   }
 };
 
