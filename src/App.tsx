@@ -14,8 +14,8 @@ import QuizPage from './pages/QuizPage';
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/sign-in" element={<LoginPage />} />
+      <Route path="/sign-up" element={<RegisterPage />} />
 
       <Route element={<MainLayout />}>
         <Route path="/" element={<Dashboard />} />
