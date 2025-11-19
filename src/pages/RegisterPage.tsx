@@ -61,7 +61,7 @@ function RegisterPage(): React.JSX.Element {
     mutationFn: registerUser,
     onSuccess: (data) => {
       console.log('Registrasi berhasil!', data);
-      navigate('/login');
+      navigate('/sign-in');
     },
     
     onError: (error: any) => {

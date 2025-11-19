@@ -1,18 +1,20 @@
+// src/components/tasks/TaskItem.tsx
 import React from 'react';
-import { Box, Typography, Paper, Checkbox } from '@mui/material';
+import { Box, Typography, Paper, Checkbox, IconButton, Chip } from '@mui/material';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import type { Task } from '../../types/task.types';
+import { useTheme } from '@mui/material/styles';
 
-function getTaskStatus(dueDate: string, completed: boolean): { label: string, color: string, status: 'overdue' | 'today' | 'upcoming' | 'completed' } {
+function getTaskStatus(dueDate: string, completed: boolean): { label: string, color: string, status: string } {
   if (completed) {
-    return { label: `Due: ${new Date(dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`, color: 'success.main', status: 'completed' };
+    return { label: `Due: ${new Date(dueDate).toLocaleDateString()}`, color: 'success.main', status: 'completed' };
   }
-
   const today = new Date();
   const date = new Date(dueDate);
-  today.setHours(0, 0, 0, 0); // Reset jam hari ini
-  date.setHours(0, 0, 0, 0); // Reset jam tanggal tugas
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
 
   if (date < today) {
     return { label: 'Due: Yesterday', color: 'error.main', status: 'overdue' };
@@ -20,28 +22,29 @@ function getTaskStatus(dueDate: string, completed: boolean): { label: string, co
   if (date.getTime() === today.getTime()) {
     return { label: 'Due: Today', color: 'warning.main', status: 'today' };
   }
-  if (date > today) {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    if (date.getTime() === tomorrow.getTime()) {
-      return { label: 'Due: Tomorrow', color: 'text.secondary', status: 'upcoming' };
-    }
-    return { label: `Due: ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`, color: 'text.secondary', status: 'upcoming' };
-  }
-  
-  return { label: 'No due date', color: 'text.secondary', status: 'upcoming' };
+  return { label: `Due: ${date.toLocaleDateString()}`, color: 'text.secondary', status: 'upcoming' };
 }
-// --- Akhir Helper ---
+
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'high': return 'error';
+    case 'medium': return 'warning';
+    case 'low': return 'success';
+    default: return 'default';
+  }
+};
 
 interface TaskItemProps {
   task: Task;
+  onUpdateStatus: (task: Task, newStatus: boolean) => void;
+  onDelete: (taskId: number) => void;
 }
 
-function TaskItem({ task }: TaskItemProps): React.JSX.Element {
-  const { label, context, completed, dueDate } = task;
+function TaskItem({ task, onUpdateStatus, onDelete }: TaskItemProps): React.JSX.Element {
+  const { label, context, completed, dueDate, priority } = task;
   const { label: dateLabel, color: dateColor, status } = getTaskStatus(dueDate, completed);
+  const theme = useTheme();
 
-  // Warna border kiri
   const borderColor = status === 'overdue' ? 'error.main' : 'divider';
 
   return (
@@ -53,7 +56,7 @@ function TaskItem({ task }: TaskItemProps): React.JSX.Element {
         alignItems: 'center',
         gap: 1.5,
         border: '1px solid',
-        borderColor: 'divider',
+        borderColor: theme.palette.divider,
         borderLeft: 4,
         borderLeftColor: borderColor,
         borderRadius: '12px',
@@ -62,8 +65,9 @@ function TaskItem({ task }: TaskItemProps): React.JSX.Element {
     >
       <Checkbox
         checked={completed}
-        icon={<RadioButtonUncheckedIcon />} // Ikon bulat
-        checkedIcon={<CheckCircleIcon color="primary" />} // Ikon bulat tercentang
+        icon={<RadioButtonUncheckedIcon />}
+        checkedIcon={<CheckCircleIcon color="primary" />}
+        onChange={(e) => onUpdateStatus(task, e.target.checked)}
       />
       <Box sx={{ flexGrow: 1 }}>
         <Typography 
@@ -73,16 +77,29 @@ function TaskItem({ task }: TaskItemProps): React.JSX.Element {
         >
           {label}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {context}
-        </Typography>
+        {/* Tampilkan Context dan Priority */}
+        <Box sx={{ display: 'flex', gap: 1, mt: 0.5, alignItems: 'center' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+            {context}
+          </Typography>
+          <Chip 
+            label={priority} 
+            size="small" 
+            color={getPriorityColor(priority) as any} 
+            variant="outlined" 
+            sx={{ height: 20, fontSize: '0.7rem', textTransform: 'capitalize' }}
+          />
+        </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
           {dateLabel}
         </Typography>
         <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: dateColor }} />
       </Box>
+      <IconButton size="small" onClick={() => onDelete(task.id)}>
+        <DeleteOutlineIcon fontSize="small" sx={{ color: 'error.main' }} />
+      </IconButton>
     </Paper>
   );
 }

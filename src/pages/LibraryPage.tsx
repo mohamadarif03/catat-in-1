@@ -1,183 +1,233 @@
-// src/pages/LibraryPage.tsx
 import React, { useState } from 'react';
-import { Box, Typography, Button, Grid, Paper, IconButton } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  IconButton,
+  Skeleton,
+  Alert,
+} from '@mui/material';
+
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import FolderDialog from '../components/library/FolderDialog'; 
-import type { Folder } from '../types/folder.types'; 
-import FileUploadDialog from '../components/library/FileUploadDialog';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getFolders, createFolder, updateFolder, deleteFolder } from '../services/apiLibraryService';
+
+import FolderDialog from '../components/library/FolderDialog';
+import type { Folder } from '../types/folder.types';
 
 function LibraryPage(): React.JSX.Element {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
-  const [openFileUploadDialog, setOpenFileUploadDialog] = useState(false);
-  const [folders, setFolders] = useState<Folder[]>([
-    { id: 'f1', name: 'Biology Notes', iconColor: '#3E8EDE', createdAt: '2023-10-20', fileCount: 12 },
-    { id: 'f2', name: 'History Essays', iconColor: '#FF8C42', createdAt: '2023-10-18', fileCount: 8 },
-    { id: 'f3', name: 'Math Exercises', iconColor: '#28a745', createdAt: '2023-10-22', fileCount: 15 },
-  ]);
 
-  // Fungsi untuk menangani save (Create & Edit)
-  const handleSaveDialog = (data: { name: string, iconColor: string }) => {
+  const queryClient = useQueryClient();
+
+  const { data: folders, isLoading, isError, error } = useQuery({
+    queryKey: ['folders'],
+    queryFn: getFolders,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createFolder,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['folders'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ folderId, data }: { folderId: number; data: { name: string; iconColor: string } }) =>
+      updateFolder(folderId, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['folders'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteFolder,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['folders'] }),
+  });
+
+  const handleSaveDialog = (data: { name: string; iconColor: string }) => {
     if (editingFolder) {
-      setFolders(prevFolders =>
-        prevFolders.map(folder =>
-          folder.id === editingFolder.id
-            ? { ...folder, name: data.name, iconColor: data.iconColor } // Update folder yang cocok
-            : folder
-        )
-      );
+      updateMutation.mutate({ folderId: editingFolder.id, data });
     } else {
-      // --- Ini adalah MODE CREATE ---
-      const newFolder: Folder = {
-        id: `f${folders.length + 1}-${Date.now()}`,
-        name: data.name,
-        iconColor: data.iconColor,
-        createdAt: new Date().toISOString().split('T')[0],
-        fileCount: 0,
-      };
-      setFolders(prevFolders => [...prevFolders, newFolder]);
+      createMutation.mutate(data);
     }
     handleCloseDialog();
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setEditingFolder(null); 
+    setEditingFolder(null);
   };
+
+  const handleDeleteClick = (folderId: number) => {
+    if (window.confirm('Anda yakin ingin menghapus folder ini?')) {
+      deleteMutation.mutate(folderId);
+    }
+  };
+
+  // ===========================
+  // LOADING STATE
+  // ===========================
+  if (isLoading) {
+    return (
+      <Box>
+        <Typography variant="h4" gutterBottom>My Library</Typography>
+
+        <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+          <Skeleton variant="rounded" width={140} height={42} />
+          <Skeleton variant="rounded" width={200} height={42} />
+        </Box>
+
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gap: 24,
+          }}
+        >
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} variant="rounded" height={110} />
+          ))}
+        </Box>
+      </Box>
+    );
+  }
+
+  // ===========================
+  // ERROR STATE
+  // ===========================
+  if (isError) {
+    return <Alert severity="error">Gagal mengambil data library: {error.message}</Alert>;
+  }
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" fontWeight="600" gutterBottom>
         My Library
       </Typography>
+
       <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
-        Organize your study materials here.
+        Organize your study materials neatly and efficiently.
       </Typography>
 
+      {/* BUTTONS */}
       <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
-       <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              setEditingFolder(null); 
-              setOpenDialog(true);   
-            }}
-            sx={{ textTransform: 'none', color: 'white' }}
-          >
-            Add Folder
-          </Button>
-       <Button
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => {
+            setEditingFolder(null);
+            setOpenDialog(true);
+          }}
+          sx={{
+            textTransform: 'none',
+            borderRadius: '10px',
+            px: 3,
+            py: 1.3,
+            fontWeight: 600,
+            color:'white'
+          }}
+        >
+          Add Folder
+        </Button>
+
+        <Button
           variant="outlined"
           startIcon={<DescriptionOutlinedIcon />}
-          sx={{ textTransform: 'none' }}
-          onClick={() => setOpenFileUploadDialog(true)}
+          sx={{
+            textTransform: 'none',
+            borderRadius: '10px',
+            px: 3,
+            py: 1.3,
+            fontWeight: 600,
+          }}
         >
           Add File / Generate Quiz
         </Button>
       </Box>
 
-      <Box
+     <Box
   sx={{
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
+    display: 'grid',
+    gridTemplateColumns: '1fr',  
+    gap: 1,
   }}
 >
-  {folders.map((folder) => (
+  {folders?.map((folder) => (
     <Paper
       key={folder.id}
+      elevation={0}
       sx={{
-        p: 2.5,
-        display: "flex",
-        alignItems: "center",
-        borderRadius: 4,
-        gap: 2.5,
-        cursor: "pointer",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-        transition: "0.25s ease",
-        border: "1px solid rgba(0,0,0,0.06)",
-        "&:hover": {
-          transform: "translateY(-3px)",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-          backgroundColor: "rgba(255,255,255,0.75)",
-          backdropFilter: "blur(4px)",
+        p: 2.4,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        borderRadius: '14px',
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: '0.25s ease',
+        cursor: 'pointer',
+        bgcolor: 'background.paper',
+
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.07)',
+          borderColor: 'primary.main',
         },
       }}
     >
-      {/* ICON SECTION */}
-      <Box
-        sx={{
-          width: 55,
-          height: 55,
-          borderRadius: "14px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: folder.iconColor + "15", // warna transparan modern
-        }}
-      >
-        <FolderOutlinedIcon
-          sx={{
-            color: folder.iconColor,
-            fontSize: 34,
-          }}
-        />
-      </Box>
+      <FolderOutlinedIcon sx={{ color: folder.iconColor, fontSize: 42 }} />
 
-      {/* TEXT SECTION */}
-      <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
+      <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
         <Typography
           variant="h6"
+          fontWeight="600"
           sx={{
-            fontWeight: 700,
-            letterSpacing: 0.3,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            lineHeight: 1.2,
           }}
         >
           {folder.name}
         </Typography>
 
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            mt: 0.2,
-            fontSize: "0.85rem",
-          }}
-        >
-          {folder.fileCount} files • Created {folder.createdAt}
-        </Typography>
+    <Typography
+  variant="body2"
+  color="text.secondary"
+  sx={{ fontWeight: 600 }}   // <-- tambah ini
+>
+  {folder.fileCount} items
+</Typography>
+
       </Box>
 
-      {/* EDIT BUTTON MODERN */}
       <IconButton
         size="small"
-        sx={{
-          padding: 1,
-          borderRadius: 2,
-          transition: "0.25s",
-          "&:hover": {
-            backgroundColor: "rgba(0,0,0,0.06)",
-          },
-        }}
         onClick={(e) => {
           e.stopPropagation();
           setEditingFolder(folder);
           setOpenDialog(true);
         }}
       >
-        <EditOutlinedIcon sx={{ fontSize: 20 }} />
+        <EditOutlinedIcon fontSize="small" />
+      </IconButton>
+
+      <IconButton
+        size="small"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDeleteClick(folder.id);
+        }}
+      >
+        <DeleteOutlineIcon fontSize="small" sx={{ color: 'error.main' }} />
       </IconButton>
     </Paper>
   ))}
 </Box>
-
 
 
       <FolderDialog
@@ -185,10 +235,6 @@ function LibraryPage(): React.JSX.Element {
         onClose={handleCloseDialog}
         onSave={handleSaveDialog}
         initialData={editingFolder}
-      />
-      <FileUploadDialog
-        open={openFileUploadDialog}
-        onClose={() => setOpenFileUploadDialog(false)}
       />
     </Box>
   );

@@ -1,7 +1,7 @@
 export type Folder = {
-  id: string; 
-  name: string; 
+  id: number; 
+  name: string;
   iconColor: string;
-  createdAt: string; 
-  fileCount: number; 
+  createdAt: string;
+  fileCount: number;
 };
