@@ -97,39 +97,38 @@ function TasksPage(): React.JSX.Element {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
-  // --- Handlers ---
   
-  // 1. Buka Dialog Create
   const handleOpenCreate = () => {
     setEditingTask(null); // Reset edit state
     setOpenDialog(true);
   };
 
-  // 2. Buka Dialog Edit
   const handleOpenEdit = (task: Task) => {
     setEditingTask(task); // Set task yang mau diedit
     setOpenDialog(true);
   };
 
-  // 3. Submit (Create atau Update)
   const handleDialogSubmit = (title: string, context: string, task_date: string, priority: 'low' | 'medium' | 'high') => {
     if (editingTask) {
-      // Mode EDIT
       updateMutation.mutate({
         id: editingTask.id,
         data: { title, context, task_date, priority }
       });
     } else {
-      // Mode CREATE
       createMutation.mutate({ title, context, task_date, priority });
     }
   };
 
   const handleUpdateTaskStatus = (task: Task, newStatus: boolean) => {
-    // Update status checkbox saja
     updateMutation.mutate({ 
       id: task.id, 
-      data: { completed: newStatus } 
+      data: { 
+        title: task.label,       
+        context: task.context,   
+        priority: task.priority, 
+        task_date: task.dueDate,
+        completed: newStatus
+      } 
     });
   };
 
