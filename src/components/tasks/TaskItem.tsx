@@ -3,6 +3,7 @@ import React from 'react';
 import { Box, Typography, Paper, Checkbox, IconButton, Chip } from '@mui/material';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import type { Task } from '../../types/task.types';
 import { useTheme } from '@mui/material/styles';
@@ -38,9 +39,10 @@ interface TaskItemProps {
   task: Task;
   onUpdateStatus: (task: Task, newStatus: boolean) => void;
   onDelete: (taskId: number) => void;
+  onEdit: (task: Task) => void;
 }
 
-function TaskItem({ task, onUpdateStatus, onDelete }: TaskItemProps): React.JSX.Element {
+function TaskItem({ task, onUpdateStatus, onDelete, onEdit }: TaskItemProps): React.JSX.Element {
   const { label, context, completed, dueDate, priority } = task;
   const { label: dateLabel, color: dateColor, status } = getTaskStatus(dueDate, completed);
   const theme = useTheme();
@@ -97,6 +99,12 @@ function TaskItem({ task, onUpdateStatus, onDelete }: TaskItemProps): React.JSX.
         </Typography>
         <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: dateColor }} />
       </Box>
+      <IconButton 
+          size="small" 
+          onClick={() => onEdit(task)} 
+          sx={{ color: 'primary.main', mb: 0.5 }}>
+          <EditOutlinedIcon fontSize="small" />
+        </IconButton>
       <IconButton size="small" onClick={() => onDelete(task.id)}>
         <DeleteOutlineIcon fontSize="small" sx={{ color: 'error.main' }} />
       </IconButton>

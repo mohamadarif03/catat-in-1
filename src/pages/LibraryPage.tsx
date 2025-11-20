@@ -14,15 +14,18 @@ import AddIcon from '@mui/icons-material/Add';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import FolderOffIcon from '@mui/icons-material/FolderOff';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFolders, createFolder, updateFolder, deleteFolder } from '../services/apiLibraryService';
 
 import FolderDialog from '../components/library/FolderDialog';
+import FileUploadDialog from '../components/library/FileUploadDialog';
 import type { Folder } from '../types/folder.types';
 
 function LibraryPage(): React.JSX.Element {
   const [openDialog, setOpenDialog] = useState(false);
+  const [openFileDialog, setOpenFileDialog] = useState(false);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
   const queryClient = useQueryClient();
@@ -68,9 +71,11 @@ function LibraryPage(): React.JSX.Element {
     }
   };
 
-  // ===========================
-  // LOADING STATE
-  // ===========================
+  const isEmpty = !isLoading && folders?.length === 0;
+
+  // -----------------------------
+  // LOADING SKELETON
+  // -----------------------------
   if (isLoading) {
     return (
       <Box>
@@ -96,13 +101,16 @@ function LibraryPage(): React.JSX.Element {
     );
   }
 
-  // ===========================
-  // ERROR STATE
-  // ===========================
+  // -----------------------------
+  // ERROR
+  // -----------------------------
   if (isError) {
     return <Alert severity="error">Gagal mengambil data library: {error.message}</Alert>;
   }
 
+  // -----------------------------
+  // MAIN RENDER
+  // -----------------------------
   return (
     <Box>
       <Typography variant="h4" fontWeight="600" gutterBottom>
@@ -113,7 +121,7 @@ function LibraryPage(): React.JSX.Element {
         Organize your study materials neatly and efficiently.
       </Typography>
 
-      {/* BUTTONS */}
+      {/* Header buttons */}
       <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
         <Button
           variant="contained"
@@ -128,7 +136,7 @@ function LibraryPage(): React.JSX.Element {
             px: 3,
             py: 1.3,
             fontWeight: 600,
-            color:'white'
+            color: 'white',
           }}
         >
           Add Folder
@@ -137,6 +145,7 @@ function LibraryPage(): React.JSX.Element {
         <Button
           variant="outlined"
           startIcon={<DescriptionOutlinedIcon />}
+          onClick={() => setOpenFileDialog(true)} 
           sx={{
             textTransform: 'none',
             borderRadius: '10px',
@@ -149,92 +158,116 @@ function LibraryPage(): React.JSX.Element {
         </Button>
       </Box>
 
-     <Box
-  sx={{
-    display: 'grid',
-    gridTemplateColumns: '1fr',  
-    gap: 1,
-  }}
->
-  {folders?.map((folder) => (
-    <Paper
-      key={folder.id}
-      elevation={0}
-      sx={{
-        p: 2.4,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        borderRadius: '14px',
-        border: '1px solid',
-        borderColor: 'divider',
-        transition: '0.25s ease',
-        cursor: 'pointer',
-        bgcolor: 'background.paper',
+      {/* List / Empty state */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '1fr', // 1 kolom seperti desain kamu
+          gap: 16,
+        }}
+      >
+        {/* Empty state */}
+        {isEmpty ? (
+          <Paper
+            sx={{
+              p: 6,
+              borderRadius: '14px',
+              border: '2px dashed',
+              borderColor: 'divider',
+              textAlign: 'center',
+            }}
+          >
+            <FolderOffIcon sx={{ fontSize: 60, opacity: 0.4, mb: 2 }} />
+            <Typography variant="h6" fontWeight="600">
+              Library Kosong
+            </Typography>
+            <Typography color="text.secondary">
+              Belum ada folder. Klik "Add Folder" untuk membuat.
+            </Typography>
+          </Paper>
+        ) : (
+          folders?.map((folder) => (
+            <Paper
+              key={folder.id}
+              elevation={0}
+              sx={{
+                p: 2.4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                borderRadius: '14px',
+                border: '1px solid',
+                borderColor: 'divider',
+                transition: '0.25s ease',
+                cursor: 'pointer',
+                bgcolor: 'background.paper',
 
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: '0 6px 20px rgba(0,0,0,0.07)',
-          borderColor: 'primary.main',
-        },
-      }}
-    >
-      <FolderOutlinedIcon sx={{ color: folder.iconColor, fontSize: 42 }} />
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.07)',
+                  borderColor: 'primary.main',
+                },
+              }}
+            >
+              <FolderOutlinedIcon sx={{ color: folder.iconColor, fontSize: 42 }} />
 
-      <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-        <Typography
-          variant="h6"
-          fontWeight="600"
-          sx={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            lineHeight: 1.2,
-          }}
-        >
-          {folder.name}
-        </Typography>
+              <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                <Typography
+                  variant="h6"
+                  fontWeight="600"
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {folder.name}
+                </Typography>
 
-    <Typography
-  variant="body2"
-  color="text.secondary"
-  sx={{ fontWeight: 600 }}   // <-- tambah ini
->
-  {folder.fileCount} items
-</Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontWeight: 600 }}
+                >
+                  {folder.fileCount} items
+                </Typography>
+              </Box>
 
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingFolder(folder);
+                  setOpenDialog(true);
+                }}
+              >
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(folder.id);
+                }}
+              >
+                <DeleteOutlineIcon fontSize="small" sx={{ color: 'error.main' }} />
+              </IconButton>
+            </Paper>
+          ))
+        )}
       </Box>
-
-      <IconButton
-        size="small"
-        onClick={(e) => {
-          e.stopPropagation();
-          setEditingFolder(folder);
-          setOpenDialog(true);
-        }}
-      >
-        <EditOutlinedIcon fontSize="small" />
-      </IconButton>
-
-      <IconButton
-        size="small"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDeleteClick(folder.id);
-        }}
-      >
-        <DeleteOutlineIcon fontSize="small" sx={{ color: 'error.main' }} />
-      </IconButton>
-    </Paper>
-  ))}
-</Box>
-
 
       <FolderDialog
         open={openDialog}
         onClose={handleCloseDialog}
         onSave={handleSaveDialog}
         initialData={editingFolder}
+      />
+      <FileUploadDialog
+        open={openFileDialog}
+        onClose={() => setOpenFileDialog(false)}
       />
     </Box>
   );

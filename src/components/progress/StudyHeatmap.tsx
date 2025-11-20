@@ -14,7 +14,7 @@ const getColorForLevel = (level: number, theme: any) => {
   switch (level) {
     case 0: return '#FFE7D2';
     case 1: return '#FFB97F';
-    case 2: return'##F97316';
+    case 2: return'#F97316';
     case 3: return '#B84E0F';
     case 4: return '#5A2404'
     default: return '#5A2404';

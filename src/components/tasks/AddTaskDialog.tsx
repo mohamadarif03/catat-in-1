@@ -1,5 +1,4 @@
-// src/components/tasks/AddTaskDialog.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,52 +6,73 @@ import {
   DialogActions,
   TextField,
   Button,
-  Stack,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Box,
 } from '@mui/material';
+import type { Task } from '../../types/task.types';
 
 interface AddTaskDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (title: string, context: string, task_date: string, priority: 'low' | 'medium' | 'high') => void;
+  initialData?: Task | null; 
+  onSubmit: (
+    title: string, 
+    context: string, 
+    task_date: string, 
+    priority: 'low' | 'medium' | 'high'
+  ) => void;
 }
 
-function AddTaskDialog({ open, onClose, onSubmit }: AddTaskDialogProps): React.JSX.Element {
+function AddTaskDialog({ open, onClose, initialData, onSubmit }: AddTaskDialogProps): React.JSX.Element {
   const [title, setTitle] = useState('');
-  const [context, setContext] = useState(''); // BARU: Context Input
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [context, setContext] = useState('');
+  const [date, setDate] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        setTitle(initialData.label);
+        setContext(initialData.context || '');
+        const formattedDate = initialData.dueDate.split('T')[0]; 
+        setDate(formattedDate);
+        setPriority(initialData.priority);
+      } else {
+        setTitle('');
+        setContext('');
+        const today = new Date().toISOString().split('T')[0];
+        setDate(today);
+        setPriority('medium');
+      }
+    }
+  }, [open, initialData]);
+
   const handleSubmit = () => {
-    if (title.trim() && context.trim()) {
-      onSubmit(title.trim(), context.trim(), date, priority);
-      
-      // Reset form
-      setTitle('');
-      setContext('');
-      setDate(new Date().toISOString().split('T')[0]);
-      setPriority('medium');
+    if (title && date) {
+      onSubmit(title, context, date, priority);
       onClose();
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Add New Task</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '16px' } }}>
+      <DialogTitle sx={{ fontWeight: 'bold' }}>
+        {initialData ? 'Edit Task' : 'Add New Task'}
+      </DialogTitle>
       <DialogContent>
-        <Stack spacing={2} sx={{ pt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <TextField
             autoFocus
             label="Task Title"
-            placeholder="e.g., Selesaikan Bab 3"
             fullWidth
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            required
           />
-          <TextField
+        <TextField
             label="Context / Subject"
             placeholder="e.g., Matematika, Kimia"
             fullWidth
@@ -66,25 +86,71 @@ function AddTaskDialog({ open, onClose, onSubmit }: AddTaskDialogProps): React.J
             value={date}
             onChange={(e) => setDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
+            sx={{
+              '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                filter: 'invert(0.7)',  
+                cursor: 'pointer',
+              }
+            }}
           />
-          <FormControl fullWidth>
-            <InputLabel id="priority-select-label">Priority</InputLabel>
-            <Select
-              labelId="priority-select-label"
-              value={priority}
-              label="Priority"
-              onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
-            >
-              <MenuItem value="low">Low</MenuItem>
-              <MenuItem value="medium">Medium</MenuItem>
-              <MenuItem value="high">High</MenuItem>
-            </Select>
-          </FormControl>
-        </Stack>
+          <Box>
+            <Box sx={{ fontSize: 14, fontWeight: 500, mb: 0.5 }}>Priority</Box>
+
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant={priority === 'low' ? 'contained' : 'outlined'}
+                onClick={() => setPriority('low')}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  bgcolor: priority === 'low' ? '#eaf3ff' : 'transparent',
+                  color: priority === 'low' ? '#3a7be0' : 'inherit',
+                  borderColor: '#e0e7ff',
+                  '&:hover': { bgcolor: '#eaf3ff' }
+                }}
+              >
+                Low
+              </Button>
+
+              <Button
+                variant={priority === 'medium' ? 'contained' : 'outlined'}
+                onClick={() => setPriority('medium')}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  bgcolor: priority === 'medium' ? '#2d7ff9' : 'transparent',
+                  color: priority === 'medium' ? 'white' : 'inherit',
+                  borderColor: '#2d7ff9',
+                  '&:hover': { bgcolor: '#2d7ff9' }
+                }}
+              >
+                Medium
+              </Button>
+
+              <Button
+                variant={priority === 'high' ? 'contained' : 'outlined'}
+                onClick={() => setPriority('high')}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  bgcolor: priority === 'high' ? '#ffe9e2' : 'transparent',
+                  color: priority === 'high' ? '#dc5633' : 'inherit',
+                  borderColor: '#ffd7cc',
+                  '&:hover': { bgcolor: '#ffe9e2' }
+                }}
+              >
+                High
+              </Button>
+            </Box>
+          </Box>
+
+          </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!title || !context}>Add Task</Button>
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} color="inherit">Cancel</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ color: 'white' }}>
+          {initialData ? 'Save Changes' : 'Create Task'}
+        </Button>
       </DialogActions>
     </Dialog>
   );

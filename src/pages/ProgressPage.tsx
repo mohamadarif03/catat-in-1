@@ -13,6 +13,12 @@ import StudyHeatmap from '../components/progress/StudyHeatmap';
 function ProgressPage(): React.JSX.Element {
   const theme = useTheme();
 
+  // ⬅️ Background soft highlight untuk tema (mirip card special)
+  const highlightBg =
+    theme.palette.mode === 'dark'
+      ? theme.palette.primary.dark + '33'
+      : theme.palette.primary.light + '33';
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -34,11 +40,8 @@ function ProgressPage(): React.JSX.Element {
           },
         }}
       >
-        <Box
-          sx={{
-            gridColumn: '1 / -1',
-          }}
-        >
+        {/* CURRENT STREAK CARD */}
+        <Box sx={{ gridColumn: '1 / -1' }}>
           <Paper
             elevation={0}
             sx={{
@@ -47,32 +50,37 @@ function ProgressPage(): React.JSX.Element {
               justifyContent: 'space-between',
               alignItems: 'center',
               borderRadius: '12px',
-              bgcolor: '#FFF4E5',
+
+              // ⬅️ otomatis mengikuti mode
+              bgcolor: highlightBg,
               border: '1px solid',
               borderColor: 'divider',
             }}
           >
             <Box>
-              <Typography variant="h6" fontWeight="bold">
+              <Typography variant="h6" fontWeight="bold" color="text.primary">
                 Current Streak!
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 Keep the flame alive.
               </Typography>
             </Box>
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <LocalFireDepartmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              <Typography variant="h3" fontWeight="bold" color="primary.dark">
+              <Typography variant="h3" fontWeight="bold" color="primary.main">
                 42
               </Typography>
             </Box>
           </Paper>
         </Box>
 
+        {/* HEATMAP */}
         <Box>
           <StudyHeatmap />
         </Box>
 
+        {/* RIGHT SIDE STAT CARDS */}
         <Box>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             Key Stats
@@ -83,25 +91,28 @@ function ProgressPage(): React.JSX.Element {
               title="Total Study Hours"
               value="32h"
               IconComponent={AccessTimeIcon}
-              iconBgColor={theme.palette.warning.light + '33'}
+              iconBgColor={highlightBg}
             />
+
             <StatCard
               title="Tasks Completed"
               value="120"
               IconComponent={CheckCircleOutlineIcon}
-              iconBgColor={theme.palette.warning.light + '33'}
+              iconBgColor={highlightBg}
             />
+
             <StatCard
               title="AI Quizzes Taken"
               value="25"
               IconComponent={LibraryBooksIcon}
-              iconBgColor={theme.palette.warning.light + '33'}
+              iconBgColor={highlightBg}
             />
+
             <StatCard
               title="Most Productive Day"
               value="Monday"
               IconComponent={TrendingUpIcon}
-              iconBgColor={theme.palette.warning.light + '33'}
+              iconBgColor={highlightBg}
             />
           </Stack>
         </Box>

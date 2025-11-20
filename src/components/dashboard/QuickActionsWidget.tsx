@@ -23,7 +23,7 @@ function QuickActionsWidget(): React.JSX.Element {
           color="primary"
           startIcon={<MenuBookOutlined />}
           fullWidth
-          sx={{ py: 1.5, borderColor: '#CBD5E1', color: '#334155' }}
+          sx={{ py: 1.5, borderColor: '#CBD5E1', color: '#CBD5E1' }}
         >
           Add Material
         </Button>

@@ -29,18 +29,16 @@ import {
   getTasks, 
   createTask, 
   updateTask, 
-  deleteFolder
+  deleteTask, 
+  type TaskQueryParams
 } from '../services/apiTaskService';
 
-// import type { TaskFilterParams } from '../services/apiTaskService';
 
-// Helper untuk mendapatkan format YYYY-MM-DD lokal
 const getFormattedDate = (type: 'today' | 'tomorrow'): string => {
   const d = new Date();
   if (type === 'tomorrow') {
     d.setDate(d.getDate() + 1);
   }
-  // Format ke YYYY-MM-DD (Local time safe)
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -50,8 +48,12 @@ const getFormattedDate = (type: 'today' | 'tomorrow'): string => {
 const getStatus = (task: Task) => {
   if (task.completed) return 'completed';
   const today = new Date();
-  const date = new Date(task.dueDate);
   today.setHours(0, 0, 0, 0);
+  
+  const date = new Date(task.dueDate);
+  // Handle jika dueDate invalid, default ke upcoming
+  if (isNaN(date.getTime())) return 'upcoming';
+
   date.setHours(0, 0, 0, 0);
   if (date < today) return 'overdue';
   if (date.getTime() === today.getTime()) return 'today';
@@ -59,30 +61,21 @@ const getStatus = (task: Task) => {
 };
 
 function TasksPage(): React.JSX.Element {
-  // State UI untuk Tabs (Client-side filtering untuk status completed/incomplete)
   const [statusTab, setStatusTab] = useState<'all' | 'incomplete' | 'completed' | 'overdue'>('all');
-  
-  // State UI untuk Filter API
   const [dateFilterType, setDateFilterType] = useState<'all' | 'today' | 'tomorrow'>('all');
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   
-  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null); // State untuk edit
   
   const queryClient = useQueryClient();
 
   const apiParams: TaskQueryParams = {};
-  
-  if (dateFilterType !== 'all') {
-    apiParams.date = getFormattedDate(dateFilterType);
-  }
-  
-  if (priorityFilter !== 'all') {
-    apiParams.priority = priorityFilter;
-  }
+  if (dateFilterType !== 'all') apiParams.date = getFormattedDate(dateFilterType);
+  if (priorityFilter !== 'all') apiParams.priority = priorityFilter;
 
   // === READ ===
   const { data: tasks, isLoading, isError, error } = useQuery({
-    // Query key berubah jika filter berubah, otomatis refetch
     queryKey: ['tasks', apiParams],
     queryFn: () => getTasks(apiParams),
   });
@@ -90,57 +83,66 @@ function TasksPage(): React.JSX.Element {
   // === MUTATIONS ===
   const createMutation = useMutation({
     mutationFn: createTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
+  // Update Mutation sekarang general (bisa status, bisa data full)
   const updateMutation = useMutation({
-    mutationFn: ({ task, newStatus }: { task: Task, newStatus: boolean }) => 
-      updateTask(task, newStatus),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
+    mutationFn: ({ id, data }: { id: number, data: any }) => updateTask(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteFolder,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
+    mutationFn: deleteTask,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
   // --- Handlers ---
-  const handleStatusTabChange = (event: React.MouseEvent<HTMLElement>, newFilter: string | null) => {
-    if (newFilter) setStatusTab(newFilter as any);
+  
+  // 1. Buka Dialog Create
+  const handleOpenCreate = () => {
+    setEditingTask(null); // Reset edit state
+    setOpenDialog(true);
   };
 
-  const handleDateFilterChange = (event: SelectChangeEvent<string>) => {
-    setDateFilterType(event.target.value as any);
+  // 2. Buka Dialog Edit
+  const handleOpenEdit = (task: Task) => {
+    setEditingTask(task); // Set task yang mau diedit
+    setOpenDialog(true);
   };
 
-  const handlePriorityFilterChange = (event: SelectChangeEvent<string>) => {
-    setPriorityFilter(event.target.value as any);
-  };
-
-  const handleAddTaskSubmit = (title: string, context: string, task_date: string, priority: 'low' | 'medium' | 'high') => {
-    createMutation.mutate({ title, context, task_date, priority });
+  // 3. Submit (Create atau Update)
+  const handleDialogSubmit = (title: string, context: string, task_date: string, priority: 'low' | 'medium' | 'high') => {
+    if (editingTask) {
+      // Mode EDIT
+      updateMutation.mutate({
+        id: editingTask.id,
+        data: { title, context, task_date, priority }
+      });
+    } else {
+      // Mode CREATE
+      createMutation.mutate({ title, context, task_date, priority });
+    }
   };
 
   const handleUpdateTaskStatus = (task: Task, newStatus: boolean) => {
-    updateMutation.mutate({ task, newStatus });
+    // Update status checkbox saja
+    updateMutation.mutate({ 
+      id: task.id, 
+      data: { completed: newStatus } 
+    });
   };
 
   const handleDeleteTask = (taskId: number) => {
-    deleteMutation.mutate(taskId);
+    if (window.confirm('Are you sure you want to delete this task?')) {
+        deleteMutation.mutate(taskId);
+    }
   };
 
-  // --- Grouping Logic (Hanya untuk membagi tampilan berdasarkan status) ---
+  // --- Grouping Logic ---
   const groupedTasks = useMemo(() => {
     if (!tasks) return { overdue: [], today: [], upcoming: [], completed: [] };
     
-    // Kita filter lagi berdasarkan TAB yang dipilih (Client side)
-    // Karena API hanya filter Date & Priority, status 'completed' masih tercampur
     const filteredByTab = tasks.filter(task => {
       if (statusTab === 'all') return true;
       if (statusTab === 'completed') return task.completed;
@@ -186,7 +188,7 @@ function TasksPage(): React.JSX.Element {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h4" gutterBottom>My Tasks</Typography>
+          <Typography variant="h4" gutterBottom fontWeight="bold">My Tasks</Typography>
           <Typography variant="body1" color="text.secondary">
             Stay organized and on top of your work.
           </Typography>
@@ -195,16 +197,16 @@ function TasksPage(): React.JSX.Element {
           variant="contained" 
           color="secondary" 
           startIcon={<AddIcon />} 
-          sx={{ textTransform: 'none' }}
-          onClick={() => setOpenAddDialog(true)}
+          sx={{ textTransform: 'none', color: 'white' }}
+          onClick={handleOpenCreate} // Ganti handler
         >
           Add Task
         </Button>
       </Box>
 
+      {/* Filters */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4, flexWrap: 'wrap' }}>
-        {/* Status Filter (Client Side) */}
-        <ToggleButtonGroup value={statusTab} exclusive onChange={handleStatusTabChange} color="primary" size="small">
+        <ToggleButtonGroup value={statusTab} exclusive onChange={(_, val) => val && setStatusTab(val)} color="primary" size="small">
           <ToggleButton value="all" sx={{ textTransform: 'none' }}>All</ToggleButton>
           <ToggleButton value="incomplete" sx={{ textTransform: 'none' }}>Incomplete</ToggleButton>
           <ToggleButton value="completed" sx={{ textTransform: 'none' }}>Completed</ToggleButton>
@@ -213,20 +215,18 @@ function TasksPage(): React.JSX.Element {
         
         <Box sx={{ flexGrow: 1 }} /> 
 
-        {/* Date Filter (Server Side) */}
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <InputLabel>Filter Date</InputLabel>
-          <Select value={dateFilterType} label="Filter Date" onChange={handleDateFilterChange}>
+          <Select value={dateFilterType} label="Filter Date" onChange={(e) => setDateFilterType(e.target.value as any)}>
             <MenuItem value="all">All Dates</MenuItem>
             <MenuItem value="today">Today</MenuItem>
             <MenuItem value="tomorrow">Tomorrow</MenuItem>
           </Select>
         </FormControl>
 
-        {/* Priority Filter (Server Side) */}
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <InputLabel>Filter Priority</InputLabel>
-          <Select value={priorityFilter} label="Filter Priority" onChange={handlePriorityFilterChange}>
+          <Select value={priorityFilter} label="Filter Priority" onChange={(e) => setPriorityFilter(e.target.value as any)}>
             <MenuItem value="all">All Priorities</MenuItem>
             <MenuItem value="low">Low</MenuItem>
             <MenuItem value="medium">Medium</MenuItem>
@@ -237,7 +237,7 @@ function TasksPage(): React.JSX.Element {
 
       <Box>
         {isEmpty ? (
-          <Paper sx={{ p: 3, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: '12px' }}>
+          <Paper sx={{ p: 3, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: '12px', bgcolor: 'transparent' }}>
             <Typography variant="h6">Tidak ada tugas</Typography>
             <Typography color="text.secondary">Coba ubah filter atau tambahkan tugas baru.</Typography>
           </Paper>
@@ -247,10 +247,16 @@ function TasksPage(): React.JSX.Element {
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <WarningAmberIcon color="error" />
-                  <Typography variant="h6" fontWeight="bold">Overdue</Typography>
+                  <Typography variant="h6" fontWeight="bold" color="error">Overdue</Typography>
                 </Box>
                 {groupedTasks.overdue.map(task => (
-                  <TaskItem key={task.id} task={task} onUpdateStatus={handleUpdateTaskStatus} onDelete={handleDeleteTask} />
+                  <TaskItem 
+                    key={task.id} 
+                    task={task} 
+                    onUpdateStatus={handleUpdateTaskStatus} 
+                    onDelete={handleDeleteTask}
+                    onEdit={handleOpenEdit} // Pass handler edit
+                  />
                 ))}
               </Box>
             )}
@@ -262,7 +268,13 @@ function TasksPage(): React.JSX.Element {
                   <Typography variant="h6" fontWeight="bold">Today</Typography>
                 </Box>
                 {groupedTasks.today.map(task => (
-                  <TaskItem key={task.id} task={task} onUpdateStatus={handleUpdateTaskStatus} onDelete={handleDeleteTask} />
+                  <TaskItem 
+                    key={task.id} 
+                    task={task} 
+                    onUpdateStatus={handleUpdateTaskStatus} 
+                    onDelete={handleDeleteTask}
+                    onEdit={handleOpenEdit}
+                  />
                 ))}
               </Box>
             )}
@@ -274,7 +286,13 @@ function TasksPage(): React.JSX.Element {
                   <Typography variant="h6" fontWeight="bold">Upcoming</Typography>
                 </Box>
                 {groupedTasks.upcoming.map(task => (
-                  <TaskItem key={task.id} task={task} onUpdateStatus={handleUpdateTaskStatus} onDelete={handleDeleteTask} />
+                  <TaskItem 
+                    key={task.id} 
+                    task={task} 
+                    onUpdateStatus={handleUpdateTaskStatus} 
+                    onDelete={handleDeleteTask}
+                    onEdit={handleOpenEdit}
+                  />
                 ))}
               </Box>
             )}
@@ -283,10 +301,16 @@ function TasksPage(): React.JSX.Element {
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <CheckCircleOutlineIcon color="success" />
-                  <Typography variant="h6" fontWeight="bold">Completed</Typography>
+                  <Typography variant="h6" fontWeight="bold" color="success.main">Completed</Typography>
                 </Box>
                 {groupedTasks.completed.map(task => (
-                  <TaskItem key={task.id} task={task} onUpdateStatus={handleUpdateTaskStatus} onDelete={handleDeleteTask} />
+                  <TaskItem 
+                    key={task.id} 
+                    task={task} 
+                    onUpdateStatus={handleUpdateTaskStatus} 
+                    onDelete={handleDeleteTask}
+                    onEdit={handleOpenEdit}
+                  />
                 ))}
               </Box>
             )}
@@ -295,9 +319,10 @@ function TasksPage(): React.JSX.Element {
       </Box>
       
       <AddTaskDialog 
-        open={openAddDialog} 
-        onClose={() => setOpenAddDialog(false)} 
-        onSubmit={handleAddTaskSubmit} 
+        open={openDialog} 
+        onClose={() => setOpenDialog(false)} 
+        onSubmit={handleDialogSubmit} 
+        initialData={editingTask} // Kirim data task yang sedang diedit
       />
     </Box>
   );
