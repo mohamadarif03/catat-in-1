@@ -6,7 +6,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { Home, FileText, CheckSquare, Users } from "lucide-react";
+import { IconRobot } from "@tabler/icons-react";
+import { Home, FileText, CheckSquare, Users, User, Settings } from "lucide-react";
 import { NavLink } from "react-router";
 
 /**
@@ -15,12 +16,12 @@ import { NavLink } from "react-router";
  * - Links use NavLink to apply active state
  * - Routes with :user_id use "me" as a placeholder (e.g. /me/files)
  */
-export function AppSidebar({ variant = "inset" }: { variant?: string }) {
+export function AdminSidebar({ variant = "inset" }: { variant?: string }) {
   const items = [
     { to: "/dashboard", label: "Dashboard", icon: Home },
-    { to: "/me/files", label: "Files", icon: FileText },
-    { to: "/me/todo", label: "Todo", icon: CheckSquare },
-    { to: "/me/friends", label: "Friends", icon: Users },
+    { to: "/users", label: "Users", icon: User },
+    { to: "/ai", label: "AI Oeverview", icon: IconRobot },
+    { to: "/settings", label: "Settings", icon: Settings },
   ];
 
   return (
@@ -69,4 +70,4 @@ export function AppSidebar({ variant = "inset" }: { variant?: string }) {
   );
 }
 
-export default AppSidebar;
+export default AdminSidebar;
